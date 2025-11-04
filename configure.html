@@ -1,4 +1,116 @@
-<link rel="stylesheet" href="./static/css/style.css">
-<script src="./static/js/configure.js"></script>
-<script src="./static/js/utils.js"></script>
-<img src="./static/img/logo.png">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IPTV M3U / XC API / EPG Configurator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f141a;
+      color: #fff;
+      text-align: center;
+      margin: 0;
+      padding: 30px;
+    }
+    h1 {
+      color: #61dafb;
+    }
+    input, select {
+      width: 80%;
+      max-width: 400px;
+      padding: 10px;
+      margin: 10px;
+      border-radius: 8px;
+      border: none;
+    }
+    button {
+      background: #61dafb;
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #52c0e8;
+    }
+    .output {
+      margin-top: 20px;
+      padding: 20px;
+      background: #1c232b;
+      border-radius: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>IPTV Addon Configurator</h1>
+  <p>Select Mode:</p>
+  <select id="mode">
+    <option value="m3u">Direct M3U / EPG</option>
+    <option value="xc">Xtream Codes API</option>
+  </select>
+
+  <div id="m3u-fields">
+    <input id="m3u-url" type="text" placeholder="M3U Playlist URL">
+    <input id="epg-url" type="text" placeholder="EPG (XMLTV) URL (optional)">
+  </div>
+
+  <div id="xc-fields" style="display:none;">
+    <input id="xc-url" type="text" placeholder="Panel URL (e.g., http://example.com)">
+    <input id="xc-user" type="text" placeholder="Username">
+    <input id="xc-pass" type="password" placeholder="Password">
+  </div>
+
+  <button id="generate">Generate Config</button>
+
+  <div class="output" id="output">
+    <p><strong>Your Addon Manifest:</strong></p>
+    <p id="manifest-url"></p>
+  </div>
+
+  <script>
+    const modeSelect = document.getElementById('mode');
+    const m3uFields = document.getElementById('m3u-fields');
+    const xcFields = document.getElementById('xc-fields');
+    const generateBtn = document.getElementById('generate');
+    const outputDiv = document.getElementById('output');
+    const manifestEl = document.getElementById('manifest-url');
+
+    modeSelect.addEventListener('change', () => {
+      if (modeSelect.value === 'm3u') {
+        m3uFields.style.display = 'block';
+        xcFields.style.display = 'none';
+      } else {
+        m3uFields.style.display = 'none';
+        xcFields.style.display = 'block';
+      }
+    });
+
+    generateBtn.addEventListener('click', () => {
+      let base = window.location.origin;
+      let tokenData = {};
+      if (modeSelect.value === 'm3u') {
+        tokenData = {
+          type: 'm3u',
+          m3u: document.getElementById('m3u-url').value,
+          epg: document.getElementById('epg-url').value
+        };
+      } else {
+        tokenData = {
+          type: 'xc',
+          url: document.getElementById('xc-url').value,
+          user: document.getElementById('xc-user').value,
+          pass: document.getElementById('xc-pass').value
+        };
+      }
+      const token = btoa(JSON.stringify(tokenData));
+      const manifestUrl = `${base}/${token}/manifest.json`;
+      manifestEl.innerHTML = `<a href="${manifestUrl}" target="_blank">${manifestUrl}</a><br><br><a href="stremio://${manifestUrl}">stremio://${manifestUrl}</a>`;
+      outputDiv.style.display = 'block';
+    });
+  </script>
+</body>
+</html>
